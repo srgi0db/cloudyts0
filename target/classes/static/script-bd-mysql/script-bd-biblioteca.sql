@@ -1,0 +1,94 @@
+DROP DATABASE IF EXISTS `db_appbiblioteca`;
+
+/* CREACIÓN DE LA BASE DE DATOS */
+CREATE SCHEMA `db_appbiblioteca`;
+
+/* USAR LA BASE DE DATOS CREADA */
+USE `db_appbiblioteca`;
+
+CREATE TABLE usuarios (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  nombres VARCHAR(120) NOT NULL,
+  apellidos VARCHAR(120) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  rol VARCHAR(50) NOT NULL,
+  estado ENUM('ACTIVO','INACTIVO') NOT NULL DEFAULT 'ACTIVO',
+  eliminado BOOLEAN NOT NULL DEFAULT FALSE
+) ENGINE=InnoDB;
+
+CREATE TABLE categorias (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  nombre VARCHAR(100) NOT NULL UNIQUE,
+  estado ENUM('ACTIVO','INACTIVO') NOT NULL DEFAULT 'ACTIVO',
+  eliminado BOOLEAN NOT NULL DEFAULT FALSE
+) ENGINE=InnoDB;
+
+CREATE TABLE libros (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  isbn VARCHAR(20) NOT NULL UNIQUE,
+  titulo VARCHAR(200) NOT NULL,
+  autor VARCHAR(150) NOT NULL,
+  editorial VARCHAR(150) NOT NULL,
+  categoria_id BIGINT NOT NULL,
+  precio_unitario DECIMAL(10,2) NOT NULL,
+  stock INT NOT NULL DEFAULT 0,
+  url_imagen VARCHAR(500),
+  estado ENUM('ACTIVO','INACTIVO') NOT NULL DEFAULT 'ACTIVO',
+  eliminado BOOLEAN NOT NULL DEFAULT FALSE,
+  CONSTRAINT fk_libros_categorias FOREIGN KEY (categoria_id) REFERENCES categorias(id),
+  CONSTRAINT chk_libros_precio CHECK (precio_unitario >= 0),
+  CONSTRAINT chk_libros_stock CHECK (stock >= 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE clientes (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  nombres VARCHAR(120) NOT NULL,
+  apellidos VARCHAR(120) NOT NULL,
+  tipo_documento VARCHAR(20) NOT NULL,
+  numero_documento VARCHAR(20) NOT NULL UNIQUE,
+  email VARCHAR(150),
+  telefono VARCHAR(20),
+  saldo DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  estado ENUM('ACTIVO','INACTIVO') NOT NULL DEFAULT 'ACTIVO',
+  eliminado BOOLEAN NOT NULL DEFAULT FALSE
+) ENGINE=InnoDB;
+
+CREATE TABLE ventas (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  cliente_id BIGINT NOT NULL,
+  fecha_venta DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  igv DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  estado ENUM('REGISTRADA','ANULADA') NOT NULL DEFAULT 'REGISTRADA',
+  CONSTRAINT fk_ventas_clientes FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE detalle_ventas (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  venta_id BIGINT NOT NULL,
+  libro_id BIGINT NOT NULL,
+  cantidad INT NOT NULL,
+  precio_unitario DECIMAL(10,2) NOT NULL,
+  subtotal DECIMAL(10,2) NOT NULL,
+  CONSTRAINT fk_detalle_ventas_ventas FOREIGN KEY (venta_id) REFERENCES ventas(id),
+  CONSTRAINT fk_detalle_ventas_libros FOREIGN KEY (libro_id) REFERENCES libros(id),
+  CONSTRAINT chk_detalle_cantidad CHECK (cantidad > 0),
+  CONSTRAINT chk_detalle_precio CHECK (precio_unitario >= 0),
+  CONSTRAINT chk_detalle_subtotal CHECK (subtotal >= 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE movimientos_saldo (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  cliente_id BIGINT NOT NULL,
+  tipo ENUM('RECARGA', 'COMPRA', 'DEVOLUCION') NOT NULL,
+  monto DECIMAL(10,2) NOT NULL,
+  saldo_anterior DECIMAL(10,2) NOT NULL,
+  saldo_nuevo DECIMAL(10,2) NOT NULL,
+  metodo ENUM('TARJETA_SIMULADA', 'SALDO') NOT NULL,
+  estado ENUM('APROBADA', 'PENDIENTE', 'RECHAZADA') NOT NULL DEFAULT 'APROBADA',
+  descripcion VARCHAR(255),
+  fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_movimientos_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+) ENGINE=InnoDB;

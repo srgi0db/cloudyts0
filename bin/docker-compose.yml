@@ -1,0 +1,13 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: ventas-libros-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ventas_libros_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - ventas_libros_mysql_data:/var/lib/mysql
+volumes:
+  ventas_libros_mysql_data:

@@ -1,0 +1,10 @@
+USE ventas_libros_db;
+
+ALTER TABLE ventas
+    MODIFY COLUMN estado VARCHAR(30) NOT NULL;
+
+ALTER TABLE ventas
+    ADD COLUMN IF NOT EXISTS codigo_verificacion VARCHAR(40) NULL UNIQUE,
+    ADD COLUMN IF NOT EXISTS punto_recojo_id VARCHAR(40) NULL,
+    ADD COLUMN IF NOT EXISTS punto_recojo_nombre VARCHAR(160) NULL,
+    ADD COLUMN IF NOT EXISTS metodo_pago VARCHAR(30) NULL;
