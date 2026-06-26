@@ -3,8 +3,6 @@ server:
   address: 0.0.0.0
 
 spring:
-  application:
-    name: ventas-libros
   datasource:
     url: jdbc:postgresql://reseau.proxy.rlwy.net:46315/railway
     username: postgres
